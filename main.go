@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	transport = flag.String("transport", "", "Transport type (stdio, http, or sse)")
-	showVersion   = flag.Bool("version", false, "Show version information")
+	transport   = flag.String("transport", "", "Transport type (stdio, http, or sse)")
+	showVersion = flag.Bool("version", false, "Show version information")
 )
 
 // Version information - these will be set during build
@@ -67,13 +67,13 @@ type GeminiImageGenerationOutput struct {
 }
 
 type GeminiImageEditInput struct {
-	InputImagePath  string   `json:"input_image_path" jsonschema:"description:Path to the input image file to edit (PNG, JPEG, WebP supported)"`
-	EditPrompt      string   `json:"edit_prompt" jsonschema:"description:Detailed description of how to edit the image. Be specific about what changes to make."`
-	Model           string   `json:"model,omitempty" jsonschema:"description:Gemini model to use for image editing,default:gemini-2.5-flash-image-preview"`
-	PreserveStyle   bool     `json:"preserve_style,omitempty" jsonschema:"description:Whether to preserve the original image style during editing,default:true"`
-	EditType        string   `json:"edit_type,omitempty" jsonschema:"description:Type of edit: 'modify' (change elements), 'add' (add new elements), 'remove' (remove elements), 'style' (change style),default:modify"`
-	MaskArea        string   `json:"mask_area,omitempty" jsonschema:"description:Specific area to focus edits on (e.g., 'background', 'foreground', 'top-left', 'center')"`
-	OutputDirectory string   `json:"output_directory,omitempty" jsonschema:"description:Optional. Local directory path where the edited image will be saved."`
+	InputImagePath  string `json:"input_image_path" jsonschema:"description:Path to the input image file to edit (PNG, JPEG, WebP supported)"`
+	EditPrompt      string `json:"edit_prompt" jsonschema:"description:Detailed description of how to edit the image. Be specific about what changes to make."`
+	Model           string `json:"model,omitempty" jsonschema:"description:Gemini model to use for image editing,default:gemini-2.5-flash-image-preview"`
+	PreserveStyle   bool   `json:"preserve_style,omitempty" jsonschema:"description:Whether to preserve the original image style during editing,default:true"`
+	EditType        string `json:"edit_type,omitempty" jsonschema:"description:Type of edit: 'modify' (change elements), 'add' (add new elements), 'remove' (remove elements), 'style' (change style),default:modify"`
+	MaskArea        string `json:"mask_area,omitempty" jsonschema:"description:Specific area to focus edits on (e.g., 'background', 'foreground', 'top-left', 'center')"`
+	OutputDirectory string `json:"output_directory,omitempty" jsonschema:"description:Optional. Local directory path where the edited image will be saved."`
 }
 
 type GeminiImageEditOutput struct {
@@ -119,7 +119,6 @@ type ImagenGenerationOutput struct {
 	Model           string   `json:"model"`
 	SavedFiles      []string `json:"saved_files,omitempty"`
 }
-
 
 // Text-to-Video Generation
 type VeoTextToVideoInput struct {
@@ -168,7 +167,6 @@ type VeoGenerationOutput struct {
 	GeneratedAt     string            `json:"generated_at"`
 	EstimatedLength string            `json:"estimated_length"`
 }
-
 
 func main() {
 	flag.Parse()
@@ -250,7 +248,6 @@ func (s *Server) registerTools(server *mcp.Server) {
 		Name:        "imagen_t2i",
 		Description: "Generate high-quality images using Google's state-of-the-art Imagen models via Gemini API. Imagen is Google's advanced text-to-image diffusion model capable of creating photorealistic and artistic images from detailed text descriptions. This tool supports multiple Imagen model variants optimized for different use cases, from fast generation to ultra-high quality output.",
 	}, s.handleImagenGeneration)
-
 
 	// Register veo_text_to_video tool
 	mcp.AddTool(server, &mcp.Tool{
@@ -754,7 +751,6 @@ func (s *Server) handleImagenGeneration(ctx context.Context, req *mcp.CallToolRe
 	}, nil
 }
 
-
 func (s *Server) handleVeoGeneration(ctx context.Context, req *mcp.CallToolRequest, input VeoGenerationInput) (*mcp.CallToolResult, VeoGenerationOutput, error) {
 	if input.Prompt == "" {
 		return nil, VeoGenerationOutput{}, fmt.Errorf("prompt is required")
@@ -1236,4 +1232,3 @@ func (s *Server) handleVeoImageToVideo(ctx context.Context, req *mcp.CallToolReq
 		EstimatedLength: "8 seconds",
 	}, nil
 }
-
