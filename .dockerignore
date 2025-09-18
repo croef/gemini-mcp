@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Build artifacts
+build/
+dist/
+gemini-mcp
+*.exe
+
+# Environment and config
+.env
+.env.local
+.env.example
+
+# Test files
+*_test.go
+test/
+coverage.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output
+output/
+test_output/
+
+# GitHub
+.github/
+
+# License (we want this in the container)
+!LICENSE.txt

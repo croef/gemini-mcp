@@ -1,0 +1,28 @@
+build
+gemini-mcp
+.env
+.env.local
+test
+output
+test_output
+
+# MCP configuration files (may contain sensitive API keys)
+.mcp.json
+mcp.json
+
+# Coverage reports
+coverage.out
+*.prof
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
