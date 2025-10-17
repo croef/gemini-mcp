@@ -22,16 +22,6 @@ jobs:
       with:
         go-version: '1.23'
 
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
     - name: Download dependencies
       run: go mod download
 
@@ -43,11 +33,9 @@ jobs:
         echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
         echo "BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
         echo "GIT_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-        echo "GIT_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
     - name: Build binaries
       run: |
-        # Create build directory
         mkdir -p build
 
         # Build for multiple platforms
@@ -72,100 +60,37 @@ jobs:
 
           # Create compressed archives
           if [ "$os" = "windows" ]; then
-            zip "build/gemini-mcp-${VERSION}-${os}-${arch}.zip" "$output"
-            rm "$output"
+            (cd build && zip "gemini-mcp-${VERSION}-${os}-${arch}.zip" "$(basename "$output")")
           else
             tar -czf "build/gemini-mcp-${VERSION}-${os}-${arch}.tar.gz" -C build "$(basename "$output")"
-            rm "$output"
           fi
+
+          # Remove uncompressed binary
+          rm "$output"
         done
 
     - name: Generate checksums
       run: |
         cd build
-        sha256sum * > checksums.txt
-        echo "Checksums generated:"
+        sha256sum *.tar.gz *.zip > checksums.txt
         cat checksums.txt
 
-    - name: Generate changelog
-      id: changelog
+    - name: Generate release notes
       run: |
         if [ -f CHANGELOG.md ]; then
-          # Extract changelog for current version
-          sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 > current_changelog.txt
+          sed -n "/## \[${VERSION#v}\]/,/## \[/p" CHANGELOG.md | head -n -1 > release_notes.txt
         else
-          # Generate simple changelog from git commits
-          echo "## Changes in ${VERSION}" > current_changelog.txt
-          echo "" >> current_changelog.txt
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> current_changelog.txt || echo "- Initial release" >> current_changelog.txt
+          echo "## Changes in ${VERSION}" > release_notes.txt
+          echo "" >> release_notes.txt
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")..HEAD >> release_notes.txt 2>/dev/null || echo "- Initial release" >> release_notes.txt
         fi
-
-        echo "Generated changelog:"
-        cat current_changelog.txt
 
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "build/*"
-        bodyFile: "current_changelog.txt"
+        artifacts: "build/*.tar.gz,build/*.zip,build/checksums.txt"
+        bodyFile: "release_notes.txt"
         draft: false
         prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
-        name: "Release ${{ env.VERSION }}"
-        tag: ${{ env.VERSION }}
-
-  docker:
-    needs: release
-    runs-on: ubuntu-latest
-    continue-on-error: true  # Don't fail the entire workflow if Docker fails
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to Docker Hub
-      if: github.event_name != 'pull_request' && vars.ENABLE_DOCKER_PUSH == 'true'
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-      continue-on-error: true
-
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ github.repository }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-
-    - name: Build Docker image (local only)
-      if: github.event_name == 'pull_request' || vars.ENABLE_DOCKER_PUSH != 'true'
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: false
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Build and push Docker image
-      if: github.event_name != 'pull_request' && vars.ENABLE_DOCKER_PUSH == 'true'
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max

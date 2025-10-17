@@ -23,13 +23,72 @@ A comprehensive Model Context Protocol (MCP) server for Google Gemini AI service
 
 ## 📋 Prerequisites
 
+### For Pre-built Binaries
+- **Google API Key** with Gemini API access (required)
+- **Optional**: Google Cloud Project ID for advanced features
+
+### For Building from Source
 - **Go 1.23+** (required for building)
 - **Google API Key** with Gemini API access (required)
 - **Optional**: Google Cloud Project ID for advanced features
 
 ## 🛠️ Installation
 
-### Quick Setup
+### Option 1: Download Pre-built Binary (Recommended)
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/YOUR_USERNAME/gemini-mcp/releases):
+
+**Linux (x86_64)**
+```bash
+# Download and extract
+wget https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-linux-amd64.tar.gz
+tar -xzf gemini-mcp-VERSION-linux-amd64.tar.gz
+
+# Make executable and move to PATH
+chmod +x gemini-mcp-VERSION-linux-amd64
+sudo mv gemini-mcp-VERSION-linux-amd64 /usr/local/bin/gemini-mcp
+```
+
+**Linux (ARM64)**
+```bash
+wget https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-linux-arm64.tar.gz
+tar -xzf gemini-mcp-VERSION-linux-arm64.tar.gz
+chmod +x gemini-mcp-VERSION-linux-arm64
+sudo mv gemini-mcp-VERSION-linux-arm64 /usr/local/bin/gemini-mcp
+```
+
+**macOS (Intel)**
+```bash
+# Download and extract
+curl -LO https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-darwin-amd64.tar.gz
+tar -xzf gemini-mcp-VERSION-darwin-amd64.tar.gz
+
+# Make executable and move to PATH
+chmod +x gemini-mcp-VERSION-darwin-amd64
+sudo mv gemini-mcp-VERSION-darwin-amd64 /usr/local/bin/gemini-mcp
+```
+
+**macOS (Apple Silicon)**
+```bash
+curl -LO https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-darwin-arm64.tar.gz
+tar -xzf gemini-mcp-VERSION-darwin-arm64.tar.gz
+chmod +x gemini-mcp-VERSION-darwin-arm64
+sudo mv gemini-mcp-VERSION-darwin-arm64 /usr/local/bin/gemini-mcp
+```
+
+**Windows**
+```powershell
+# Download the zip file from releases page
+# Extract gemini-mcp-VERSION-windows-amd64.zip
+# Add the extracted .exe to your PATH
+```
+
+**Verify installation:**
+```bash
+gemini-mcp -version
+```
+
+### Option 2: Build from Source
 
 1. **Clone and build**:
 ```bash
@@ -48,7 +107,7 @@ export GOOGLE_API_KEY="your_google_api_key_here"
 ./gemini-mcp -version
 ```
 
-### Using Makefile
+### Option 3: Using Makefile
 
 1. **Install dependencies**:
 ```bash
@@ -234,6 +293,20 @@ General video generation tool supporting both text-to-video and image-to-video c
 {
   "mcpServers": {
     "gemini": {
+      "command": "gemini-mcp",
+      "env": {
+        "GOOGLE_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+**Note:** If you installed the binary to a custom location, use the full path:
+```json
+{
+  "mcpServers": {
+    "gemini": {
       "command": "/path/to/gemini-mcp",
       "env": {
         "GOOGLE_API_KEY": "your_api_key_here"
@@ -249,7 +322,7 @@ General video generation tool supporting both text-to-video and image-to-video c
   "cline.mcp.servers": [
     {
       "name": "gemini",
-      "command": "/path/to/gemini-mcp",
+      "command": "gemini-mcp",
       "env": {
         "GOOGLE_API_KEY": "your_api_key_here"
       }

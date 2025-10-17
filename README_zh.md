@@ -23,13 +23,72 @@
 
 ## 📋 先决条件
 
+### 使用预编译二进制
+- **Google API Key**，需要 Gemini API 访问权限（必需）
+- **可选**：Google Cloud 项目 ID 用于高级功能
+
+### 从源码构建
 - **Go 1.23+**（构建必需）
 - **Google API Key**，需要 Gemini API 访问权限（必需）
 - **可选**：Google Cloud 项目 ID 用于高级功能
 
 ## 🛠️ 安装
 
-### 快速设置
+### 方式一：下载预编译二进制（推荐）
+
+从 [GitHub Releases](https://github.com/YOUR_USERNAME/gemini-mcp/releases) 下载适合您平台的最新版本：
+
+**Linux (x86_64)**
+```bash
+# 下载并解压
+wget https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-linux-amd64.tar.gz
+tar -xzf gemini-mcp-VERSION-linux-amd64.tar.gz
+
+# 添加执行权限并移动到 PATH
+chmod +x gemini-mcp-VERSION-linux-amd64
+sudo mv gemini-mcp-VERSION-linux-amd64 /usr/local/bin/gemini-mcp
+```
+
+**Linux (ARM64)**
+```bash
+wget https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-linux-arm64.tar.gz
+tar -xzf gemini-mcp-VERSION-linux-arm64.tar.gz
+chmod +x gemini-mcp-VERSION-linux-arm64
+sudo mv gemini-mcp-VERSION-linux-arm64 /usr/local/bin/gemini-mcp
+```
+
+**macOS (Intel)**
+```bash
+# 下载并解压
+curl -LO https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-darwin-amd64.tar.gz
+tar -xzf gemini-mcp-VERSION-darwin-amd64.tar.gz
+
+# 添加执行权限并移动到 PATH
+chmod +x gemini-mcp-VERSION-darwin-amd64
+sudo mv gemini-mcp-VERSION-darwin-amd64 /usr/local/bin/gemini-mcp
+```
+
+**macOS (Apple Silicon)**
+```bash
+curl -LO https://github.com/YOUR_USERNAME/gemini-mcp/releases/latest/download/gemini-mcp-VERSION-darwin-arm64.tar.gz
+tar -xzf gemini-mcp-VERSION-darwin-arm64.tar.gz
+chmod +x gemini-mcp-VERSION-darwin-arm64
+sudo mv gemini-mcp-VERSION-darwin-arm64 /usr/local/bin/gemini-mcp
+```
+
+**Windows**
+```powershell
+# 从 releases 页面下载 zip 文件
+# 解压 gemini-mcp-VERSION-windows-amd64.zip
+# 将解压的 .exe 文件添加到系统 PATH
+```
+
+**验证安装：**
+```bash
+gemini-mcp -version
+```
+
+### 方式二：从源码构建
 
 1. **克隆和构建**：
 ```bash
@@ -48,7 +107,7 @@ export GOOGLE_API_KEY="your_google_api_key_here"
 ./gemini-mcp -version
 ```
 
-### 使用 Makefile
+### 方式三：使用 Makefile
 
 1. **安装依赖**：
 ```bash
@@ -234,6 +293,20 @@ echo '{"jsonrpc":"2.0","id":"1","method":"tools/list","params":{}}' | ./gemini-m
 {
   "mcpServers": {
     "gemini": {
+      "command": "gemini-mcp",
+      "env": {
+        "GOOGLE_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+**注意：** 如果您将二进制文件安装到自定义位置，请使用完整路径：
+```json
+{
+  "mcpServers": {
+    "gemini": {
       "command": "/path/to/gemini-mcp",
       "env": {
         "GOOGLE_API_KEY": "your_api_key_here"
@@ -249,7 +322,7 @@ echo '{"jsonrpc":"2.0","id":"1","method":"tools/list","params":{}}' | ./gemini-m
   "cline.mcp.servers": [
     {
       "name": "gemini",
-      "command": "/path/to/gemini-mcp",
+      "command": "gemini-mcp",
       "env": {
         "GOOGLE_API_KEY": "your_api_key_here"
       }
