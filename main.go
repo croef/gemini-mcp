@@ -70,6 +70,7 @@ type GeminiImageEditInput struct {
 	InputImagePath  string `json:"input_image_path" jsonschema:"description:Path to the input image file to edit (PNG, JPEG, WebP supported)"`
 	EditPrompt      string `json:"edit_prompt" jsonschema:"description:Detailed description of how to edit the image. Be specific about what changes to make."`
 	Model           string `json:"model,omitempty" jsonschema:"description:Gemini model to use for image editing,default:gemini-2.5-flash-image-preview"`
+	AspectRatio     string `json:"aspect_ratio,omitempty" jsonschema:"description:Preferred aspect ratio for the edited image. Common ratios: '1:1' (square), '16:9' (landscape), '9:16' (portrait), '4:3', '3:4'"`
 	PreserveStyle   bool   `json:"preserve_style,omitempty" jsonschema:"description:Whether to preserve the original image style during editing,default:true"`
 	EditType        string `json:"edit_type,omitempty" jsonschema:"description:Type of edit: 'modify' (change elements), 'add' (add new elements), 'remove' (remove elements), 'style' (change style),default:modify"`
 	MaskArea        string `json:"mask_area,omitempty" jsonschema:"description:Specific area to focus edits on (e.g., 'background', 'foreground', 'top-left', 'center')"`
@@ -80,6 +81,7 @@ type GeminiImageEditOutput struct {
 	OriginalImage string            `json:"original_image"`
 	EditedImage   string            `json:"edited_image,omitempty"`
 	EditType      string            `json:"edit_type"`
+	AspectRatio   string            `json:"aspect_ratio,omitempty"`
 	Model         string            `json:"model"`
 	SavedFiles    []string          `json:"saved_files,omitempty"`
 	Metadata      map[string]string `json:"metadata,omitempty"`
@@ -90,6 +92,7 @@ type GeminiMultiImageInput struct {
 	InputImagePaths []string `json:"input_image_paths" jsonschema:"description:Paths to input image files to combine (2-3 images recommended)"`
 	CombinePrompt   string   `json:"combine_prompt" jsonschema:"description:Description of how to combine or blend the images"`
 	Model           string   `json:"model,omitempty" jsonschema:"description:Gemini model to use for multi-image processing,default:gemini-2.5-flash-image-preview"`
+	AspectRatio     string   `json:"aspect_ratio,omitempty" jsonschema:"description:Preferred aspect ratio for the combined image. Common ratios: '1:1' (square), '16:9' (landscape), '9:16' (portrait), '4:3', '3:4'"`
 	BlendMode       string   `json:"blend_mode,omitempty" jsonschema:"description:How to blend images: 'merge', 'collage', 'overlay', 'sequence',default:merge"`
 	OutputStyle     string   `json:"output_style,omitempty" jsonschema:"description:Style for the combined image: 'photorealistic', 'artistic', 'seamless'"`
 	OutputDirectory string   `json:"output_directory,omitempty" jsonschema:"description:Optional. Local directory path where the combined image will be saved."`
@@ -99,6 +102,7 @@ type GeminiMultiImageOutput struct {
 	InputImages     []string          `json:"input_images"`
 	CombinedImage   string            `json:"combined_image,omitempty"`
 	BlendMode       string            `json:"blend_mode"`
+	AspectRatio     string            `json:"aspect_ratio,omitempty"`
 	Model           string            `json:"model"`
 	SavedFiles      []string          `json:"saved_files,omitempty"`
 	Metadata        map[string]string `json:"metadata,omitempty"`
@@ -455,6 +459,10 @@ func (s *Server) handleGeminiImageEdit(ctx context.Context, req *mcp.CallToolReq
 	var promptParts []string
 	promptParts = append(promptParts, input.EditPrompt)
 
+	if input.AspectRatio != "" {
+		promptParts = append(promptParts, fmt.Sprintf("Aspect ratio: %s", input.AspectRatio))
+	}
+
 	if input.PreserveStyle {
 		promptParts = append(promptParts, "Preserve the original image style and characteristics")
 	}
@@ -539,6 +547,7 @@ func (s *Server) handleGeminiImageEdit(ctx context.Context, req *mcp.CallToolReq
 		"original_image": input.InputImagePath,
 		"edit_prompt":    input.EditPrompt,
 		"edit_type":      editType,
+		"aspect_ratio":   input.AspectRatio,
 		"preserve_style": fmt.Sprintf("%t", input.PreserveStyle),
 		"mask_area":      input.MaskArea,
 	}
@@ -547,6 +556,7 @@ func (s *Server) handleGeminiImageEdit(ctx context.Context, req *mcp.CallToolReq
 		OriginalImage: input.InputImagePath,
 		EditedImage:   editedImagePath,
 		EditType:      editType,
+		AspectRatio:   input.AspectRatio,
 		Model:         model,
 		SavedFiles:    savedFiles,
 		Metadata:      metadata,
@@ -580,6 +590,10 @@ func (s *Server) handleGeminiMultiImage(ctx context.Context, req *mcp.CallToolRe
 	// Build parts array starting with text prompt
 	var promptParts []string
 	promptParts = append(promptParts, input.CombinePrompt)
+
+	if input.AspectRatio != "" {
+		promptParts = append(promptParts, fmt.Sprintf("Aspect ratio: %s", input.AspectRatio))
+	}
 
 	switch blendMode {
 	case "collage":
@@ -665,6 +679,7 @@ func (s *Server) handleGeminiMultiImage(ctx context.Context, req *mcp.CallToolRe
 	metadata := map[string]string{
 		"combine_prompt": input.CombinePrompt,
 		"blend_mode":     blendMode,
+		"aspect_ratio":   input.AspectRatio,
 		"output_style":   input.OutputStyle,
 		"images_count":   fmt.Sprintf("%d", len(input.InputImagePaths)),
 	}
@@ -673,6 +688,7 @@ func (s *Server) handleGeminiMultiImage(ctx context.Context, req *mcp.CallToolRe
 		InputImages:     input.InputImagePaths,
 		CombinedImage:   combinedImagePath,
 		BlendMode:       blendMode,
+		AspectRatio:     input.AspectRatio,
 		Model:           model,
 		SavedFiles:      savedFiles,
 		Metadata:        metadata,
